@@ -2,6 +2,7 @@ package com.example.tasks.controllers;
 
 import com.example.tasks.domain.*;
 import com.example.tasks.repository.TaskRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.transaction.Transactional;
 
@@ -23,6 +24,8 @@ import org.junit.jupiter.api.BeforeEach;
 public class TaskControllerTest {
 
   @Autowired
+  private ObjectMapper objectMapper;
+  @Autowired
   private TaskRepository taskRepository;
 
   @Autowired
@@ -41,7 +44,7 @@ public class TaskControllerTest {
   }
 
   @Test
-  void testGetTasks() throws Exception {
+  void testGetAllTasks() throws Exception {
     mockMvc.perform(MockMvcRequestBuilders.get("/tasks"))
         .andExpect(MockMvcResultMatchers.status().isOk());
   }
@@ -57,4 +60,27 @@ public class TaskControllerTest {
         taskRepository.findAll().stream()
             .anyMatch(task -> "New task".equals(task.getTitle())));
   };
+
+  @Test
+  void testGetTask() throws Exception{
+    Task task = taskRepository.findAll().get(0);
+    mockMvc.perform(MockMvcRequestBuilders.get("/tasks/" + task.getId()))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(task.getTitle()));
+  }
+
+  @Test
+  void testUpdateTask() throws Exception{
+    Task task = taskRepository.findAll().get(0);
+    Task updatedTask = new Task("Updated Title");
+    updatedTask.changeStatus();
+    String updatedJson = objectMapper.writeValueAsString(updatedTask);
+
+    mockMvc.perform(MockMvcRequestBuilders.put("/tasks/" + task.getId())
+            .contentType("application/json")
+            .content(updatedJson))
+          .andExpect(MockMvcResultMatchers.status().isOk())
+          .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(updatedTask.getTitle()))
+          .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(updatedTask.getStatus()));
+  }
 }
