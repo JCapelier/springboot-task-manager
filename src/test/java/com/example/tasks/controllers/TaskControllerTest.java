@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +63,7 @@ public class TaskControllerTest {
   };
 
   @Test
-  void testGetTask() throws Exception{
+  void testGetTask() throws Exception {
     Task task = taskRepository.findAll().get(0);
     mockMvc.perform(MockMvcRequestBuilders.get("/tasks/" + task.getId()))
             .andExpect(MockMvcResultMatchers.status().isOk())
@@ -70,7 +71,7 @@ public class TaskControllerTest {
   }
 
   @Test
-  void testUpdateTask() throws Exception{
+  void testUpdateTask() throws Exception {
     Task task = taskRepository.findAll().get(0);
     Task updatedTask = new Task("Updated Title");
     updatedTask.changeStatus();
@@ -82,5 +83,15 @@ public class TaskControllerTest {
           .andExpect(MockMvcResultMatchers.status().isOk())
           .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(updatedTask.getTitle()))
           .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(updatedTask.getStatus()));
+  }
+
+  @Test
+  void testDeleteTask() throws Exception {
+    Task task = taskRepository.findAll().get(0);
+
+    mockMvc.perform(MockMvcRequestBuilders.delete("/tasks/" + task.getId()))
+            .andExpect(MockMvcResultMatchers.status().isNoContent());
+
+    assertFalse(taskRepository.existsById(task.getId()));
   }
 }
