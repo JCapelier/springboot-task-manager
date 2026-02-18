@@ -57,7 +57,7 @@ public class TaskControllerTest {
         .content("{\"title\":\"New task\"}"))
         .andExpect(MockMvcResultMatchers.status().isOk());
 
-        assertTrue(
+    assertTrue(
         taskRepository.findAll().stream()
             .anyMatch(task -> "New task".equals(task.getTitle())));
   };
@@ -65,33 +65,39 @@ public class TaskControllerTest {
   @Test
   void testGetTask() throws Exception {
     Task task = taskRepository.findAll().get(0);
+    org.junit.jupiter.api.Assertions.assertNotNull(task.getId(), "Task ID should not be null");
     mockMvc.perform(MockMvcRequestBuilders.get("/tasks/" + task.getId()))
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(task.getTitle()));
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(task.getTitle()));
   }
 
   @Test
   void testUpdateTask() throws Exception {
     Task task = taskRepository.findAll().get(0);
+    org.junit.jupiter.api.Assertions.assertNotNull(task.getId(), "Task ID should not be null");
     Task updatedTask = new Task("Updated Title");
     updatedTask.changeStatus();
     String updatedJson = objectMapper.writeValueAsString(updatedTask);
+    org.junit.jupiter.api.Assertions.assertNotNull(updatedJson, "updatedJson should not be null");
 
     mockMvc.perform(MockMvcRequestBuilders.put("/tasks/" + task.getId())
-            .contentType("application/json")
-            .content(updatedJson))
-          .andExpect(MockMvcResultMatchers.status().isOk())
-          .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(updatedTask.getTitle()))
-          .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(updatedTask.getStatus()));
+        .contentType("application/json")
+        .content(updatedJson))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(updatedTask.getTitle()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(updatedTask.getStatus()));
   }
 
   @Test
   void testDeleteTask() throws Exception {
     Task task = taskRepository.findAll().get(0);
+    org.junit.jupiter.api.Assertions.assertNotNull(task.getId(), "Task ID should not be null");
+    Long taskId = task.getId();
+    org.junit.jupiter.api.Assertions.assertNotNull(taskId, "Task ID should not be null");
 
     mockMvc.perform(MockMvcRequestBuilders.delete("/tasks/" + task.getId()))
-            .andExpect(MockMvcResultMatchers.status().isNoContent());
+        .andExpect(MockMvcResultMatchers.status().isNoContent());
 
-    assertFalse(taskRepository.existsById(task.getId()));
+    assertFalse(taskRepository.existsById(taskId));
   }
 }
